@@ -6,7 +6,12 @@
   "author": "Zacharias Knudsen <zachasme@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "firebase": "^7.16.0",
     "preact": "^10.4.6",
-    "preact-router": "^3.2.1"
+    "preact-router": "^3.2.1",
+    "serve": "^11.3.2"
+  },
+  "scripts": {
+    "start": "yarn serve --single"
   }
 }
