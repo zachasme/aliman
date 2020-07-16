@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "https://cdn.pika.dev/*": ["node_modules/*"]
+    }
+  }
+}

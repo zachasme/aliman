@@ -1,0 +1,12 @@
+{
+  "name": "aliman",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:zachasme/aliman.git",
+  "author": "Zacharias Knudsen <zachasme@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "preact": "^10.4.6",
+    "preact-router": "^3.2.1"
+  }
+}

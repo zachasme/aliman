@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#db5945" />
+
+    <title>aliman (Arch Linux Install Manager)</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module">
+      import { h, render } from "https://cdn.pika.dev/preact";
+      import App from "./components/App.js";
+
+      const container = document.getElementById("root");
+      render(h(App, null, "hej"), container);
+    </script>
+  </body>
+</html>
