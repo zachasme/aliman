@@ -1,8 +1,8 @@
 /*
 TODO: Uncomment the following when skypack support lands -->
-import firebase from "https://cdn.skypack.dev/firebase/app";
-import "https://cdn.skypack.dev/firebase/auth";
-import "https://cdn.skypack.dev/firebase/firestore";
+import firebase from "https://cdn.pika.dev/firebase/app";
+import "https://cdn.pika.dev/firebase/auth";
+import "https://cdn.pika.dev/firebase/firestore";
 */
 
 const firebaseConfig = {

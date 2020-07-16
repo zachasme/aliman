@@ -3,7 +3,7 @@
     "checkJs": true,
     "baseUrl": ".",
     "paths": {
-      "https://cdn.skypack.dev/*": ["node_modules/*"]
+      "https://cdn.pika.dev/*": ["node_modules/*"]
     }
   }
 }

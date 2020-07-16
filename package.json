@@ -5,13 +5,15 @@
   "repository": "git@github.com:zachasme/aliman.git",
   "author": "Zacharias Knudsen <zachasme@gmail.com>",
   "license": "MIT",
-  "devDependencies": {
+  "dependencies": {
     "firebase": "^7.16.0",
     "preact": "^10.4.6",
-    "preact-router": "^3.2.1",
-    "serve": "^11.3.2"
+    "preact-router": "^3.2.1"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.1"
   },
   "scripts": {
-    "start": "yarn serve --single"
+    "start": "yarn live-server --entry-file=index.html"
   }
 }
