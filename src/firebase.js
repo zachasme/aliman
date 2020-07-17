@@ -1,9 +1,6 @@
-/*
-TODO: Uncomment the following when skypack support lands -->
-import firebase from "https://cdn.pika.dev/firebase/app";
-import "https://cdn.pika.dev/firebase/auth";
-import "https://cdn.pika.dev/firebase/firestore";
-*/
+import firebase from "https://cdn.skypack.dev/firebase/app";
+import "https://cdn.skypack.dev/firebase/auth";
+import "https://cdn.skypack.dev/firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDKXAbzf26WdBaZvrqq5LpLrB-0yQJ_9-4",
@@ -16,9 +13,8 @@ const firebaseConfig = {
   measurementId: "G-R8X2TG5GPE",
 };
 
-const firebase = window.firebase;
+//const firebase = window.firebase;
 
 firebase.initializeApp(firebaseConfig);
-firebase.analytics();
 
 export default firebase;

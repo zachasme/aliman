@@ -22,6 +22,19 @@ const INITIAL_CONFIGURATION = {
   partitionRoot: "asfd",
 };
 
+function* generate(script) {
+  const lines = script.split("\n");
+  let begun = false;
+  for (const line of lines) {
+    if (!begun) {
+      if (line === "#<START>#") begun = true;
+      continue;
+    }
+    if (line === "#<END>#") break;
+    yield line;
+  }
+}
+
 /** @type preact.FunctionComponent<{
  *   user: firebase.User
  * }>
@@ -53,7 +66,17 @@ const Home = ({ user }) => {
       });
   }, [user]);
 
-  return h("p", null, h(Options, { configuration, setConfiguration }));
+  const [lines, setLines] = useState("");
+  useEffect(() => {
+    fetch("/install.sh")
+      .then((response) => response.text())
+      .then((script) => setLines(Array.from(generate(script)).join("\n")));
+  }, []);
+
+  return h("p", null, [
+    h(Options, { configuration, setConfiguration }),
+    h("pre", null, lines),
+  ]);
 };
 
 export default Home;

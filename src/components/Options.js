@@ -54,11 +54,12 @@ const Options = ({ configuration, setConfiguration }) => {
     }),
     h(InputEnum, {
       options: Kernel,
-      legend: "Kernel",
-      name: "kernel",
+      legend: "Kernel(s)",
+      name: "kernels",
       value: configuration.kernel,
       onChange: (kernel) => update({ kernel }),
       wiki: "Kernel",
+      multiple: true,
     }),
   ]);
 };

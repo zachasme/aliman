@@ -10,9 +10,18 @@ const WIKI_BASE = "https://wiki.archlinux.org/index.php/";
  *   value: string;
  *   onChange?(x: any): any;
  *   wiki: string;
+ *   multiple?: boolean;
  * }>
  */
-const InputEnum = ({ options, legend, name, value, wiki, onChange }) => {
+const InputEnum = ({
+  options,
+  legend,
+  name,
+  value,
+  wiki,
+  onChange,
+  multiple,
+}) => {
   function handleChange(e) {
     onChange(e.target.value);
   }
@@ -22,7 +31,7 @@ const InputEnum = ({ options, legend, name, value, wiki, onChange }) => {
     Object.values(options).map((option) =>
       h("label", { key: option }, [
         h("input", {
-          type: "radio",
+          type: multiple ? "checkbox" : "radio",
           name,
           value: option,
           checked: option === value,
