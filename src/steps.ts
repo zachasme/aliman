@@ -1,58 +1,119 @@
-interface Step {
+export interface BaseStep {
   title?: string;
-  code: string;
   note?: string;
-  input?: string;
+  skip?: boolean;
+  chroot?: boolean;
 }
 
-interface Section {
+export interface WriteStep extends BaseStep {
+  type: "write";
+  path: string;
+  lines: string[];
+}
+
+export interface CommandStep extends BaseStep {
+  type: "command";
+  command: string;
+  store?: string;
+}
+
+export type Step = WriteStep | CommandStep;
+
+export interface Section {
   title: string;
   steps: Step[];
 }
 
-export default function steps(): Section[] {
+export type BootMode = "uefi";
+export type Processor = "amd";
+export type Editor = "vim";
+export type FileSystem = "ext4";
+export type Kernel = "linux";
+
+export interface Options {
+  bootMode: BootMode;
+  processor: Processor;
+  editor: Editor;
+  fileSystem: FileSystem;
+  kernel: Kernel;
+  username: string;
+  hostname: string;
+  partitionDevice: string;
+  partitionBoot: string;
+  partitionRoot: string;
+}
+
+export const defaultOptions: Options = {
+  bootMode: "uefi",
+  editor: "vim",
+  fileSystem: "ext4",
+  kernel: "linux",
+  processor: "amd",
+  username: "zach",
+  hostname: "ballz-pc",
+  partitionDevice: "/dev/sda",
+  partitionBoot: "/dev/sda1",
+  partitionRoot: "/dev/sda2",
+};
+
+export default function steps(options: Options): Section[] {
   return [
     {
       title: "Pre-installation (live environment)",
       steps: [
-        { title: "Set keyboard layout", code: "loadkeys dk" },
         {
+          skip: true,
+          type: "command",
+          title: "Set keyboard layout",
+          command: "loadkeys dk",
+        },
+        {
+          skip: true,
+          type: "command",
           title: "Verify EFI boot mode",
-          code: "ls /sys/firmware/efi/efivars",
+          command: "ls /sys/firmware/efi/efivars",
           note:
             "If the directory does not exist, you need to find a way to reboot into EFI boot mode",
         },
         {
+          type: "command",
           title: "Update system clock",
-          code: "timedatectl set-ntp true",
+          command: "timedatectl set-ntp true",
         },
         {
+          skip: true,
+          type: "command",
           title: "Partition the disks",
-          code: "gdisk /dev/nvme0n1p",
-          note:
-            "Example: /dev/nvme0n1p1 EFI partition 550 MiB, /dev/nvme0n1p2 linux partition remaining space",
+          command: `gdisk ${options.partitionDevice}`,
+          note: `Example: ${options.partitionBoot} EFI partition 550 MiB, ${options.partitionRoot} linux partition remaining space`,
         },
         {
+          skip: true,
+          type: "command",
           title: "Format EFI partition",
-          code: "mkfs.fat -F32 /dev/nvme0n1p1",
+          command: `mkfs.fat -F32 ${options.partitionBoot}`,
           note:
             "IMPORTANT: Refer to the wiki if you are dual booting, formatting your EFI partition will most likely make Windows unbootable",
         },
         {
+          type: "command",
           title: "Format root partition",
-          code: "mkfs.ext4 /dev/nvme0n1p2",
+          command: `mkfs.${options.fileSystem} ${options.partitionRoot}`,
         },
         {
+          type: "command",
           title: "Mount root file system",
-          code: "mount /dev/nvme0n1p2 /mnt",
+          command: `mount ${options.partitionRoot} /mnt`,
         },
         {
+          type: "command",
           title: "Create EFI mount point",
-          code: "mkdir /mnt/boot",
+          command: "mkdir /mnt/boot",
         },
         {
+          type: "command",
           title: "Mount EFI file system",
-          code: "mount /dev/nvme0n1p1 /mnt/boot",
+          command: `mount ${options.partitionBoot} /mnt/boot`,
         },
       ],
     },
@@ -60,15 +121,45 @@ export default function steps(): Section[] {
       title: "Installation",
       steps: [
         {
+          skip: true,
+          type: "command",
           title: "Choose download mirrors",
-          code: "vim /etc/pacman.d/mirrorlist",
+          command: `${options.editor} /etc/pacman.d/mirrorlist`,
           note:
             "The higher a mirror is placed in the list, the more priority it is given when downloading a package. You may want to edit the file accordingly, and move the geographically closest mirrors to the top of the list, although other criteria should be taken into account. This file will later be copied to the new system by pacstrap, so it is worth getting right.",
         },
         {
+          type: "command",
           title: "Install base packages",
-          code:
-            "pacstrap /mnt vim base base-devel linux linux-firmware intel‑ucode",
+          command: `pacstrap /mnt ${options.editor} base base-devel linux linux-firmware intel-ucode`,
+        },
+      ],
+    },
+
+    {
+      title: "Configuration",
+      steps: [
+        {
+          type: "command",
+          title: "Generate fstab file",
+          command: "genfstab -U /mnt >> /mnt/etc/fstab",
+        },
+        {
+          type: "command",
+          title: "Change root into new system",
+          command: "arch-chroot /mnt",
+        },
+        {
+          type: "command",
+          chroot: true,
+          title: "Set root password",
+          command: "passwd",
+        },
+        {
+          type: "command",
+          chroot: true,
+          title: "Set default editor",
+          command: `echo 'EDITOR=${options.editor}' >> /etc/environment`,
         },
       ],
     },
@@ -77,71 +168,111 @@ export default function steps(): Section[] {
       title: "Localization",
       steps: [
         {
+          type: "command",
+          chroot: true,
           title: "Set the time zone",
-          code: "ln -sf /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime",
+          command:
+            "ln -sf /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime",
         },
         {
+          type: "command",
+          chroot: true,
           title: "Write software UTC time to hardware",
-          code: "hwclock --systohc",
+          command: "hwclock --systohc",
         },
         {
+          type: "write",
+          chroot: true,
           title: "Uncomment locales to generate",
-          code: "vim /etc/locale.gen",
-          input: `
-    en_DK.UTF-8 UTF-8
-    en_US.UTF-8 UTF-8
-    `,
+          path: "/etc/locale.gen",
+          lines: ["en_DK.UTF-8 UTF-8", "en_US.UTF-8 UTF-8"],
         },
         {
+          type: "command",
+          chroot: true,
           title: "Generate locales",
-          code: "locale-gen",
+          command: "locale-gen",
         },
         {
+          type: "command",
+          chroot: true,
           title: "Set LANG",
-          code: "echo 'LANG=en_DK.UTF-8' > /etc/locale.conf",
+          command: "echo 'LANG=en_DK.UTF-8' > /etc/locale.conf",
         },
         {
+          type: "command",
+          chroot: true,
           title: "Persist keymap",
-          code: "echo 'KEYMAP=dk' > /etc/vconsole.conf",
+          command: "echo 'KEYMAP=dk' > /etc/vconsole.conf",
         },
       ],
     },
     {
       title: "Networking",
       steps: [
-        { title: "Set hostname", code: "echo 'ballz-pc' > /etc/hostname" },
         {
+          type: "command",
+          chroot: true,
+          title: "Set hostname",
+          command: "echo 'ballz-pc' > /etc/hostname",
+        },
+        {
+          type: "write",
+          chroot: true,
           title: "Configure hosts file",
-          code: "vim /etc/hosts",
-          input: `
-  
-  127.0.0.1	localhost
-  ::1		localhost
-  `,
+          path: "/etc/hosts",
+          lines: ["127.0.0.1\tlocalhost", "::1\t\tlocalhost"],
         },
       ],
     },
     {
       title: "Bootloader",
       steps: [
-        { title: "Install bootloader", code: "bootctl install" },
         {
+          type: "command",
+          chroot: true,
+          title: "Install bootloader",
+          command: "bootctl install",
+        },
+        {
+          type: "command",
+          chroot: true,
           title: "Read UUID of root partition",
-          code: "lsblk -dno UUID /dev/nvme0n1p2",
+          command: "lsblk -dno UUID /dev/nvme0n1p2",
           note: "You will need this for the next step",
         },
         {
+          type: "write",
+          chroot: true,
           title: "Configure bootloader",
-          code: "vim /boot/loader/entries/arch.conf",
-          input: `
-  title Arch Linux (linux)
-  linux /vmlinuz-linux
-  initrd /intel-ucode.img
-  initrd /initramfs-linux.img
-  options root="UUID=put-here-the-uuid-you-got-above" rw
-  `,
+          path: "/boot/loader/entries/arch.conf",
+          lines: [
+            `title Arch Linux (linux)`,
+            `linux /vmlinuz-linux`,
+            `initrd /intel-ucode.img`,
+            `initrd /initramfs-linux.img`,
+            `options root="UUID=put-here-the-uuid-you-got-above" rw`,
+          ],
           note:
             "You can also edit /boot/loader/loader.conf to increase timeout if you are dual booting-windows (otherwise you will boot directly to linux)",
+        },
+      ],
+    },
+
+    {
+      title: "Reboot into new system",
+      steps: [
+        {
+          skip: true,
+          type: "command",
+          title: "Leave chroot",
+          command: "exit",
+        },
+        {
+          skip: true,
+          type: "command",
+          title: "Unmount and reboot",
+          command: "umount -R /mnt && reboot",
         },
       ],
     },
@@ -150,22 +281,29 @@ export default function steps(): Section[] {
       title: "Userspace setup",
       steps: [
         {
+          skip: true,
+          type: "command",
+          chroot: true,
           title: "Create regular user",
-          code: "useradd --create-home --groups wheel zach",
+          command: "useradd --create-home --groups wheel zach",
           note: "The `wheel` group is for sudo",
         },
-        { title: "Set user password", code: "passwd zach" },
+        { type: "command", title: "Set user password", command: "passwd zach" },
         {
+          skip: true,
+          type: "command",
+          chroot: true,
           title: "Enable sudo for wheel group",
-          code: "visudo",
-          input: `
-  
-    %wheel ALL=(ALL) ALL
-    `,
+          command: "visudo",
           note:
-            "Uncomment the above to allow members of group `wheel` to execute any command (after entering root password)",
+            "Uncomment '%wheel ALL=(ALL) ALL' the above to allow members of group `wheel` to execute any command (after entering root password)",
         },
-        { title: "Change to regular user", code: "su zach" },
+        {
+          skip: true,
+          type: "command",
+          title: "Change to regular user",
+          command: "su zach",
+        },
       ],
     },
 
@@ -173,13 +311,34 @@ export default function steps(): Section[] {
       title: "Install aurman",
       steps: [
         {
-          code:
+          skip: true,
+          type: "command",
+          command:
             "curl -L -O https://aur.archlinux.org/cgit/aur.git/snapshot/aurman.tar.gz",
         },
-        { title: "Import GnuPG key", code: "gpg --recv-keys 465022E743D71E39" },
-        { title: "Unpack", code: "tar -xvf aurman.tar.gz" },
-        { code: "cd aurman" },
-        { title: "Compile and install", code: "makepkg -si" },
+        {
+          skip: true,
+          type: "command",
+          title: "Import GnuPG key",
+          command: "gpg --recv-keys 465022E743D71E39",
+        },
+        {
+          skip: true,
+          type: "command",
+          title: "Unpack",
+          command: "tar -xvf aurman.tar.gz",
+        },
+        {
+          skip: true,
+          type: "command",
+          command: "cd aurman",
+        },
+        {
+          skip: true,
+          type: "command",
+          title: "Compile and install",
+          command: "makepkg -si",
+        },
       ],
     },
 
@@ -187,7 +346,9 @@ export default function steps(): Section[] {
       title: "Install important AUR packages",
       steps: [
         {
-          code: "aurman -Syu systemd-boot-pacman-hook",
+          skip: true,
+          type: "command",
+          command: "aurman -Syu systemd-boot-pacman-hook",
           note:
             "IMPORTANT: the bootctl update hook is needed to ensure microcode updates",
         },
@@ -195,7 +356,13 @@ export default function steps(): Section[] {
     },
     {
       title: "Install all the good shit",
-      steps: [{ code: "sudo pacman -Syu xorg docker openssh termite ..." }],
+      steps: [
+        {
+          skip: true,
+          type: "command",
+          command: "sudo pacman -Syu xorg docker openssh termite ...",
+        },
+      ],
     },
   ];
 }

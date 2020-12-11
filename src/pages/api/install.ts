@@ -1,14 +1,61 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import makeSections, { defaultOptions, Step } from "../../steps";
 
 // source <(curl -s http://localhost:3000/api/install)
 
+function stepToTerminal(step: Step) {
+  switch (step.type) {
+    case "command":
+      return `
+        echo "### ${step.title}"
+        ${step.chroot ? "arch-chroot " : ""}${step.command}
+      `;
+    case "write":
+      return `
+        echo "### ${step.title}"
+        cat <<EOT >> ${step.path}
+${step.lines.join("\n")}
+EOT
+      `;
+  }
+}
+
 export default (req: NextApiRequest, res: NextApiResponse) => {
-  res.status(200).end(`
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "text/x-shellscript");
+
+  const sections = makeSections(defaultOptions);
+
+  res.end(`
 
 #!/usr/bin/env bash
 set -e
 
-USER=$1
+umount -R /mnt
+
+${sections
+  .map(
+    (section) => `
+
+  echo "## ${section.title}"
+  ${section.steps
+    .filter((step) => !step.skip)
+    .map(stepToTerminal)
+    .join("\n")}
+  `
+  )
+  .join("\n")}
+
+  `);
+};
+
+/*
+
+
+umount -R /mnt
+
+#USER=$1
+USER=zach
 PROJECT="arch-linux-installation"
 COLLECTION="https://firestore.googleapis.com/v1/projects/$\{PROJECT\}/databases/(default)/documents/users"
 
@@ -21,26 +68,26 @@ OUTPUT_LSCPU="$(lscpu | grep Vendor)"
 
 echo $USER
 
-curl -X PATCH -H "Content-Type: application/json" \
-    -d "{'fields':{
-            'bootMode':{'stringValue':'$\{BOOT_MODE\}'},
-            'processor':{'stringValue':'$\{CPU_VENDOR\}'},
-            'lsblk':{'stringValue':'$\{OUTPUT_LSBLK\}'},
-            'lsefi':{'stringValue':'$\{OUTPUT_LSEFI\}'},
-            'lscpu':{'stringValue':'$\{OUTPUT_LSCPU\}'},
-            'time':{'stringValue':'$(date +%s)'}
-        }}" \
-    $\{COLLECTION\}/$\{USER\}/
+#curl -X PATCH -H "Content-Type: application/json" \
+#    -d "{'fields':{
+#            'bootMode':{'stringValue':'$\{BOOT_MODE\}'},
+#            'processor':{'stringValue':'$\{CPU_VENDOR\}'},
+#            'lsblk':{'stringValue':'$\{OUTPUT_LSBLK\}'},
+#            'lsefi':{'stringValue':'$\{OUTPUT_LSEFI\}'},
+#            'lscpu':{'stringValue':'$\{OUTPUT_LSCPU\}'},
+#            'time':{'stringValue':'$(date +%s)'}
+#        }}" \
+#    $\{COLLECTION\}/$\{USER\}/
 
 SECRET=$(uuidgen)
 curl qrenco.de/$\{SECRET\}
-
+#
 printf "\nScan this code\n\n"
+#
+#exit 1
 
-exit 1
 
-
-read -sp "Enter root password: " PASSWORD_ROOT
+#read -sp "Enter root password: " PASSWORD_ROOT
 
 PROCESSOR="amd"
 FILE_SYSTEM="ext4"
@@ -225,9 +272,9 @@ xorg
 exit 1
 # Reboot into new system
 # Unmount and reboot
-umount -R /mnt/boot
-umount -R /mnt
-reboot
+#umount -R /mnt/boot
+#umount -R /mnt
+#reboot
 
-  `);
-};
+
+*/

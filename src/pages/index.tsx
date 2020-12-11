@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
-import makeSections from "../steps";
+import makeSections, { defaultOptions, Step, Options } from "../steps";
+import Instructions from "../components/Instructions";
 
 type Mode = "system" | "dark" | "light";
 
@@ -12,7 +13,9 @@ export default function Home() {
     document.documentElement.setAttribute("data-theme", mode);
   }, [mode]);
 
-  const sections = makeSections();
+  const options = defaultOptions;
+
+  const sections = makeSections(options);
 
   return (
     <div className={styles.container}>
@@ -21,31 +24,18 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
+      <fieldset>
+        <legend>text editor</legend>
+        <label>
+          <input type="radio" name="editor" /> vim
+        </label>
+        <label>
+          <input type="radio" name="editor" /> nano
+        </label>
+      </fieldset>
+
       <main className={styles.main}>
-        <article>
-          <h1>Installation cheatsheet</h1>
-          {sections.map((section, i) => (
-            <section key={i}>
-              <h2>{section.title}</h2>
-              <ol>
-                {section.steps.map((step, i) => (
-                  <li key={i}>
-                    {step.title && <h3>{step.title}</h3>}
-                    <code>
-                      {step.code}
-                      {step.input && (
-                        <pre>
-                          <code>{step.input}</code>
-                        </pre>
-                      )}
-                    </code>
-                    {step.note && <p>{step.note}</p>}
-                  </li>
-                ))}
-              </ol>
-            </section>
-          ))}
-        </article>
+        <Instructions />
       </main>
 
       <footer className={styles.footer}>
