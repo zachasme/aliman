@@ -1,3 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+article {
+  margin-top: 1rem;
+  column-count: 3;
+  column-width: 20em;
+  grid-column-gap: 5rem;
+  column-gap: 5rem;
+}
+
+kbd::before {
+  content: "# ";
+  opacity: 0.5;
+}
+
+/*
+
 :root,
 :root[data-theme="light"] {
   --color-bg-primary: #fff;
@@ -48,12 +67,14 @@ a {
 
 * {
   box-sizing: border-box;
+  scrollbar-color: var(--color-bg-primary) var(--color-bg-tertiary);
+  scrollbar-width: thin;
 }
 
 article {
   margin-top: 1rem;
   column-count: 3;
-  column-width: 30em;
+  column-width: 20em;
   grid-column-gap: 5rem;
   column-gap: 5rem;
 }
@@ -72,11 +93,26 @@ li {
   flex-direction: row-reverse;
   flex-wrap: wrap;
   transition: all 0.2s ease-out;
+  overflow: auto;
+}
+li:hover {
+  transform: translateX(5px);
 }
 h3 {
   margin: 0;
   font-size: 1rem;
 }
-code {
+kbd {
   flex: 1;
 }
+kbd::before {
+  content: "# ";
+  opacity: 0.5;
+}
+pre {
+  padding: 1ch 2ch;
+  flex-basis: 100%;
+  background: var(--color-bg-secondary);
+  overflow-x: scroll;
+}
+/**/

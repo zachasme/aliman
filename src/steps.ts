@@ -5,6 +5,10 @@ export interface BaseStep {
   chroot?: boolean;
 }
 
+export interface TextStep extends BaseStep {
+  type: "text";
+}
+
 export interface WriteStep extends BaseStep {
   type: "write";
   path: string;
@@ -17,7 +21,7 @@ export interface CommandStep extends BaseStep {
   store?: string;
 }
 
-export type Step = WriteStep | CommandStep;
+export type Step = CommandStep | TextStep | WriteStep;
 
 export interface Section {
   title: string;
@@ -61,6 +65,13 @@ export default function steps(options: Options): Section[] {
     {
       title: "Pre-installation (live environment)",
       steps: [
+        {
+          skip: true,
+          type: "text",
+          title: "Boot the live environment",
+          note:
+            "Aquire an installation media, verify signature, prepare installation medium and boot the live environment as per the offical Installation Guide.",
+        },
         {
           skip: true,
           type: "command",
@@ -276,7 +287,7 @@ export default function steps(options: Options): Section[] {
         },
       ],
     },
-
+    /*
     {
       title: "Userspace setup",
       steps: [
@@ -363,6 +374,6 @@ export default function steps(options: Options): Section[] {
           command: "sudo pacman -Syu xorg docker openssh termite ...",
         },
       ],
-    },
+    },*/
   ];
 }
