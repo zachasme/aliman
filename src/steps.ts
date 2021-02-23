@@ -316,7 +316,7 @@ export default function steps(options: Options): Section[] {
       ],
     },
     
-    {
+    /*{
       title: "Userspace setup",
       steps: [
         {
@@ -344,7 +344,7 @@ export default function steps(options: Options): Section[] {
           command: "su zach",
         },
       ],
-    },/*
+    },
 
     {
       title: "Install aurman",
