@@ -8,6 +8,9 @@ module.exports = {
       colors: {
         gray: colors.trueGray,
       },
+      screens: {
+        'print': {'raw': 'print'}
+      }
     },
   },
   variants: {

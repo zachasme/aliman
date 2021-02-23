@@ -18,7 +18,7 @@ const AnyStep: React.FC<{ step: Step; options: Options }> = (props) => {
           <Terminal>
             {options.editor} {step.path}
           </Terminal>
-          <pre className="w-full block whitespace-pre text-sm bg-blue-50 text-blue-700 px-2 py-1 rounded">
+          <pre className="overflow-x-scroll w-full block whitespace-pre text-sm bg-blue-50 dark:bg-gray-900 dark:text-blue-200 text-blue-700 px-2 py-1 rounded">
             <code>{step.lines.join("\n")}</code>
           </pre>
         </>
@@ -43,11 +43,13 @@ const Instructions: React.FC<Props> = ({
   const sections = makeSections(options);
 
   return (
-    <article>
+    <article className="print:text-sm">
       {sections.map((section, i) => (
         <section key={i} className="overflow-auto">
-          <h2 className="pl-4 mt-4 text-xl font-semibold">{section.title}</h2>
-          <ol className="bg-white py-4 space-y-4">
+          <h2 className="pl-4 mt-4 text-xl print:text-sm font-semibold">
+            {section.title}
+          </h2>
+          <ol className="bg-white dark:bg-gray-800 py-4 space-y-4">
             {section.steps.map((step, i) => (
               <li
                 key={i}

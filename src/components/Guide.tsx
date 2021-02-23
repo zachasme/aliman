@@ -10,14 +10,16 @@ const Select: React.FC<any> = ({ options, value, ...props }) => {
       autoComplete="country"
       className={`
     mt-1 block w-full py-2 px-3
-    border border-gray-300 bg-white
+    border
+    bg-white border-gray-300
+    dark:bg-gray-800 dark:border-gray-700
     rounded-md shadow-sm
     focus:outline-none focus:ring-indigo-500 focus:border-indigo-500
     sm:text-sm`}
     >
       {Object.entries(options).map(([id, text]) => {
         return (
-          <option value={id} selected={value === id}>
+          <option key={id} value={id} selected={value === id}>
             {text}
           </option>
         );
@@ -38,7 +40,7 @@ const Guide: React.FC = () => {
 
   return (
     <main className="min-h-screen bg-gray-100 dark:bg-gray-900 text-black dark:text-white">
-      <div className="container mx-auto px-16">
+      <div className="print:hidden container mx-auto px-16">
         <label>
           <input
             type="checkbox"
@@ -67,7 +69,8 @@ const Guide: React.FC = () => {
             [Processor.Intel]: "Intel cpu",
           }}
         />
-
+      </div>
+      <div className="container mx-auto px-16 print:px-0">
         <Instructions
           editor={editor}
           processor={processor}

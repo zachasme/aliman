@@ -1,7 +1,9 @@
 const style = `
   prompt
   flex-grow block text-sm
-  bg-blue-50 text-blue-700 px-2 py-1 rounded
+  bg-blue-50 text-blue-700
+  dark:bg-gray-900 dark:text-blue-200
+  px-2 py-1 rounded
 `;
 
 /**
