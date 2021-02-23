@@ -1,15 +1,6 @@
 import makeSections, { defaultOptions, Step, Options } from "../steps";
 
-const Terminal: React.FC = (props) => {
-  return (
-    <kbd
-      className={
-        "flex-grow block text-sm text-gray-400 bg-gray-900 px-2 py-1 rounded"
-      }
-      {...props}
-    />
-  );
-};
+import Terminal from "./Terminal";
 
 const AnyStep: React.FC<{ step: Step; options: Options }> = (props) => {
   const { step, options } = props;
@@ -27,7 +18,7 @@ const AnyStep: React.FC<{ step: Step; options: Options }> = (props) => {
           <Terminal>
             {options.editor} {step.path}
           </Terminal>
-          <pre className="w-full overflow-x-scroll block whitespace-pre text-sm bg-gray-900 px-2 py-1 rounded">
+          <pre className="w-full block whitespace-pre text-sm bg-blue-50 text-blue-700 px-2 py-1 rounded">
             <code>{step.lines.join("\n")}</code>
           </pre>
         </>
@@ -37,29 +28,37 @@ const AnyStep: React.FC<{ step: Step; options: Options }> = (props) => {
   }
 };
 
-const Instructions: React.FC = () => {
-  const options = defaultOptions;
+interface Props {
+  isNotesEnabled: boolean;
+  editor: any;
+  processor: any;
+}
 
+const Instructions: React.FC<Props> = ({
+  isNotesEnabled,
+  editor,
+  processor,
+}) => {
+  const options = { ...defaultOptions, editor, processor };
   const sections = makeSections(options);
 
   return (
     <article>
-      <h1 className="text-xl font-semibold">Installation cheatsheet</h1>
       {sections.map((section, i) => (
         <section key={i} className="overflow-auto">
-          <h2 className="text-center mt-4 text-lg font-semibold">
-            {section.title}
-          </h2>
-          <ol>
+          <h2 className="pl-4 mt-4 text-xl font-semibold">{section.title}</h2>
+          <ol className="bg-white py-4 space-y-4">
             {section.steps.map((step, i) => (
               <li
                 key={i}
-                className="flex flex-row-reverse flex-wrap bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 mt-4 px-4 py-2 rounded"
+                className="flex flex-wrap text-gray-800 dark:text-gray-300 px-4 rounded"
               >
-                {step.title && <h3 className="font-bold pl-4">{step.title}</h3>}
+                {step.title && (
+                  <h3 className="font-medium pr-4 w-48">{step.title}</h3>
+                )}
                 <AnyStep options={options} step={step} />
-                {step.note && (
-                  <p className="w-full text-sm text-gray-400 mt-1">
+                {step.note && isNotesEnabled && (
+                  <p className="w-full text-sm text-gray-600 mt-1">
                     {step.note}
                   </p>
                 )}

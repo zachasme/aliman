@@ -1,118 +1,45 @@
+/**
+ * This injects Tailwind's base styles and any base styles registered by
+ * plugins.
+ */
 @tailwind base;
+
+/**
+  * This injects Tailwind's component classes and any component classes
+  * registered by plugins.
+  */
 @tailwind components;
+
+/**
+  * This injects Tailwind's utility classes and any utility classes registered
+  * by plugins.
+  */
 @tailwind utilities;
 
-article {
-  margin-top: 1rem;
-  column-count: 3;
-  column-width: 20em;
-  grid-column-gap: 5rem;
-  column-gap: 5rem;
-}
+/**
+  * Use this directive to control where Tailwind injects the responsive
+  * variations of each utility.
+  *
+  * If omitted, Tailwind will append these classes to the very end of
+  * your stylesheet by default.
+  */
+@tailwind screens;
 
-kbd::before {
-  content: "# ";
-  opacity: 0.5;
-}
-
-/*
-
-:root,
-:root[data-theme="light"] {
-  --color-bg-primary: #fff;
-  --color-bg-secondary: #fafbfc;
-  --color-bg-tertiary: #f6f8fa;
-
-  --color-text-primary: #24292e;
-  --color-text-secondary: #586069;
-  --color-text-tertiary: #6a737d;
-}
-
-:root[data-theme="dark"] {
-  --color-bg-primary: #0d1117;
-  --color-bg-secondary: #0d1117;
-  --color-bg-tertiary: #161b22;
-
-  --color-text-primary: #c9d1d9;
-  --color-text-secondary: #8b949e;
-  --color-text-tertiary: #8b949e;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg-primary: #0d1117;
-    --color-bg-secondary: #0d1117;
-    --color-bg-tertiary: #161b22;
-
-    --color-text-primary: #c9d1d9;
-    --color-text-secondary: #8b949e;
-    --color-text-tertiary: #8b949e;
+/**
+ * Use the @layer directive to tell Tailwind which "bucket" a set of custom
+ * styles belong to. Valid layers are a base, components, and utilities.
+ */
+@layer utilities {
+  .prompt::before {
+    content: "# ";
+    opacity: 0.5;
   }
 }
 
-html,
-body {
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  padding: 0;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-* {
-  box-sizing: border-box;
-  scrollbar-color: var(--color-bg-primary) var(--color-bg-tertiary);
-  scrollbar-width: thin;
-}
-
 article {
   margin-top: 1rem;
   column-count: 3;
   column-width: 20em;
-  grid-column-gap: 5rem;
-  column-gap: 5rem;
+  grid-column-gap: 3rem;
+  column-gap: 3rem;
 }
-ol,
-li {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-li {
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-tertiary);
-  margin: 0.5rem 0;
-  padding: 0.5rem;
-  display: flex;
-  flex-direction: row-reverse;
-  flex-wrap: wrap;
-  transition: all 0.2s ease-out;
-  overflow: auto;
-}
-li:hover {
-  transform: translateX(5px);
-}
-h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-kbd {
-  flex: 1;
-}
-kbd::before {
-  content: "# ";
-  opacity: 0.5;
-}
-pre {
-  padding: 1ch 2ch;
-  flex-basis: 100%;
-  background: var(--color-bg-secondary);
-  overflow-x: scroll;
-}
-/**/

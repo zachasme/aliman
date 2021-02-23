@@ -142,7 +142,7 @@ export default function steps(options: Options): Section[] {
         {
           type: "command",
           title: "Install base packages",
-          command: `pacstrap /mnt ${options.editor} base base-devel linux linux-firmware intel-ucode`,
+          command: `pacstrap /mnt ${options.editor} base base-devel linux linux-firmware ${options.processor}-ucode`,
         },
       ],
     },
@@ -218,6 +218,7 @@ export default function steps(options: Options): Section[] {
         },
       ],
     },
+
     {
       title: "Networking",
       steps: [
@@ -236,6 +237,27 @@ export default function steps(options: Options): Section[] {
         },
       ],
     },
+
+    {
+      title: "Initial ramdisks",
+      steps: [
+        {
+          type: "write",
+          chroot: true,
+          title: "Configure mkinitcpio",
+          path: "/etc/mkinitcpio.conf",
+          lines: [
+            `HOOKS=(systemd autodetect modconf block filesystems keyboard fsck)`,
+          ],
+        },
+        {
+          type: "command",
+          chroot: true,
+          title: "Regenereate initramfs images",
+          command: "mkinitcpio --allpresets",
+        },
+      ],
+    },
     {
       title: "Bootloader",
       steps: [
@@ -244,28 +266,34 @@ export default function steps(options: Options): Section[] {
           chroot: true,
           title: "Install bootloader",
           command: "bootctl install",
-        },
-        {
-          type: "command",
-          chroot: true,
-          title: "Read UUID of root partition",
-          command: "lsblk -dno UUID /dev/nvme0n1p2",
-          note: "You will need this for the next step",
+          note:
+            "You can also edit /boot/loader/loader.conf to increase timeout if you are dual booting-windows (otherwise you will boot directly to linux)",
         },
         {
           type: "write",
           chroot: true,
           title: "Configure bootloader",
-          path: "/boot/loader/entries/arch.conf",
+          path: "/boot/loader/entries/arch-linux.conf",
           lines: [
-            `title Arch Linux (linux)`,
+            `title Arch (linux)`,
             `linux /vmlinuz-linux`,
-            `initrd /intel-ucode.img`,
+            `initrd /${options.processor}-ucode.img`,
             `initrd /initramfs-linux.img`,
-            `options root="UUID=put-here-the-uuid-you-got-above" rw`,
+            `options rw`,
           ],
-          note:
-            "You can also edit /boot/loader/loader.conf to increase timeout if you are dual booting-windows (otherwise you will boot directly to linux)",
+        },
+        {
+          type: "write",
+          chroot: true,
+          title: "Add fallback entry",
+          path: "/boot/loader/entries/arch-linux-fallback.conf",
+          lines: [
+            `title Arch (linux-fallback)`,
+            `linux /vmlinuz-linux`,
+            `initrd /${options.processor}-ucode.img`,
+            `initrd /initramfs-linux-fallback.img`,
+            `options rw`,
+          ],
         },
       ],
     },
@@ -287,7 +315,7 @@ export default function steps(options: Options): Section[] {
         },
       ],
     },
-    /*
+    
     {
       title: "Userspace setup",
       steps: [
@@ -296,10 +324,10 @@ export default function steps(options: Options): Section[] {
           type: "command",
           chroot: true,
           title: "Create regular user",
-          command: "useradd --create-home --groups wheel zach",
+          command: "homectl create zach --member-of=wheel",
+          //command: "useradd --create-home --groups wheel zach",
           note: "The `wheel` group is for sudo",
         },
-        { type: "command", title: "Set user password", command: "passwd zach" },
         {
           skip: true,
           type: "command",
@@ -316,7 +344,7 @@ export default function steps(options: Options): Section[] {
           command: "su zach",
         },
       ],
-    },
+    },/*
 
     {
       title: "Install aurman",
