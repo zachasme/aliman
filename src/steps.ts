@@ -46,12 +46,15 @@ export interface Options {
   editor: Editor;
   graphics: Graphics;
   fileSystem: FileSystem;
+  locale: string;
   kernel: Kernel;
+  keymap: string;
   username: string;
   hostname: string;
   partitionDevice: string;
   partitionBoot: string;
   partitionRoot: string;
+  timeZone: string;
 }
 
 export const defaultOptions: Options = {
@@ -59,13 +62,16 @@ export const defaultOptions: Options = {
   editor: "vim",
   graphics: Graphics.Intel,
   fileSystem: "ext4",
+  locale: "en_DK.UTF-8",
   kernel: "linux",
+  keymap: "dk",
   processor: "amd",
   username: "zach",
   hostname: "ballz-pc",
   partitionDevice: "/dev/sda",
   partitionBoot: "/dev/sda1",
   partitionRoot: "/dev/sda2",
+  timeZone: "Europe/Copenhagen",
 };
 
 export default function steps(options: Options): Section[] {
@@ -93,33 +99,33 @@ export default function steps(options: Options): Section[] {
     {
       title: "Pre-installation (live environment)",
       steps: [
-        {
+        /*{
           skip: true,
           type: "text",
           title: "Boot the live environment",
           note:
             "Aquire an installation media, verify signature, prepare installation medium and boot the live environment as per the offical Installation Guide.",
-        },
+        },*/
         {
           skip: true,
           type: "command",
           title: "Set keyboard layout",
-          command: "loadkeys dk",
+          command: `loadkeys ${options.keymap}`,
         },
-        {
+        /*{
           skip: true,
           type: "command",
           title: "Verify EFI boot mode",
           command: "ls /sys/firmware/efi/efivars",
           note:
             "If the directory does not exist, you need to find a way to reboot into EFI boot mode",
-        },
+        },*/
         {
           type: "command",
           title: "Update system clock",
           command: "timedatectl set-ntp true",
         },
-        {
+        /*{
           skip: true,
           type: "command",
           title: "Partition the disks",
@@ -133,7 +139,7 @@ export default function steps(options: Options): Section[] {
           command: `mkfs.fat -F32 ${options.partitionBoot}`,
           note:
             "IMPORTANT: Refer to the wiki if you are dual booting, formatting your EFI partition will most likely make Windows unbootable",
-        },
+        },*/
         {
           type: "command",
           title: "Format root partition",
@@ -213,8 +219,7 @@ export default function steps(options: Options): Section[] {
           type: "command",
           chroot: true,
           title: "Set the time zone",
-          command:
-            "ln -sf /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime",
+          command: `ln -sf /usr/share/zoneinfo/${options.timeZone} /etc/localtime`,
         },
         {
           type: "command",
@@ -227,7 +232,7 @@ export default function steps(options: Options): Section[] {
           chroot: true,
           title: "Uncomment locales to generate",
           path: "/etc/locale.gen",
-          lines: ["en_DK.UTF-8 UTF-8", "en_US.UTF-8 UTF-8"],
+          lines: [`${options.locale} UTF-8`, "en_US.UTF-8 UTF-8"],
         },
         {
           type: "command",
@@ -239,13 +244,13 @@ export default function steps(options: Options): Section[] {
           type: "command",
           chroot: true,
           title: "Set LANG",
-          command: "echo 'LANG=en_DK.UTF-8' > /etc/locale.conf",
+          command: `echo 'LANG=${options.locale}' > /etc/locale.conf`,
         },
         {
           type: "command",
           chroot: true,
           title: "Persist keymap",
-          command: "echo 'KEYMAP=dk' > /etc/vconsole.conf",
+          command: `echo 'KEYMAP=${options.keymap}' > /etc/vconsole.conf`,
         },
       ],
     },
@@ -257,7 +262,7 @@ export default function steps(options: Options): Section[] {
           type: "command",
           chroot: true,
           title: "Set hostname",
-          command: "echo 'ballz-pc' > /etc/hostname",
+          command: `echo '${options.hostname}' > /etc/hostname`,
         },
         {
           type: "write",
@@ -310,20 +315,24 @@ export default function steps(options: Options): Section[] {
           chroot: true,
           title: "Install bootloader",
           command: "bootctl install",
-          note:
-            "You can also edit /boot/loader/loader.conf to increase timeout if you are dual booting-windows (otherwise you will boot directly to linux)",
         },
         {
           type: "write",
           chroot: true,
           title: "Configure bootloader",
+          path: "/boot/loader/loader.conf",
+          lines: [`console-mode max`, `timeout 3`],
+        },
+        {
+          type: "write",
+          chroot: true,
+          title: "Add boot entry",
           path: "/boot/loader/entries/arch.conf",
           lines: [
             `title Arch (${options.kernel})`,
             `linux /vmlinuz-${options.kernel}`,
             `initrd /${options.processor}-ucode.img`,
             `initrd /initramfs-${options.kernel}.img`,
-            `options rw`,
           ],
         },
         {
@@ -336,7 +345,6 @@ export default function steps(options: Options): Section[] {
             `linux /vmlinuz-${options.kernel}`,
             `initrd /${options.processor}-ucode.img`,
             `initrd /initramfs-${options.kernel}-fallback.img`,
-            `options rw`,
           ],
         },
       ],

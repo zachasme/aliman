@@ -13,12 +13,23 @@ const AnyStep: React.FC<{ step: Step; options: Options }> = (props) => {
         </>
       );
     case "write":
+      const bg = step.chroot ? "bg-indigo-50" : "bg-blue-50";
+      const text = step.chroot ? "text-indigo-700" : "text-blue-700";
+
       return (
         <>
           <Terminal chroot={step.chroot}>
             {options.editor} {step.path}
           </Terminal>
-          <pre className="overflow-x-scroll w-full block whitespace-pre text-sm bg-blue-50 dark:bg-gray-900 dark:text-blue-200 text-blue-700 px-2 py-1 rounded">
+          <pre
+            className={`
+              overflow-x-scroll w-full
+              block whitespace-pre text-sm
+              ${bg} ${text}
+              dark:bg-gray-900 dark:text-blue-200
+              px-2 py-1 rounded
+            `}
+          >
             <code>{step.lines.join("\n")}</code>
           </pre>
         </>
@@ -33,8 +44,15 @@ interface Props {
   editor: any;
   fileSystem: any;
   graphics: any;
+  hostname: any;
+  locale: any;
   kernel: any;
+  keymap: any;
+  partitionDevice: any;
+  partitionBoot: any;
+  partitionRoot: any;
   processor: any;
+  timeZone: any;
 }
 
 const Instructions: React.FC<Props> = ({ isNotesEnabled, ...props }) => {

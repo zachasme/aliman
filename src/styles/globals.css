@@ -48,6 +48,9 @@ article {
   column-gap: 3rem;
 }
 
+html {
+  font-size: 12px;
+}
 @media print {
   html {
     font-size: 10px;
