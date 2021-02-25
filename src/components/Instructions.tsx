@@ -9,13 +9,13 @@ const AnyStep: React.FC<{ step: Step; options: Options }> = (props) => {
     case "command":
       return (
         <>
-          <Terminal>{step.command}</Terminal>
+          <Terminal chroot={step.chroot}>{step.command}</Terminal>
         </>
       );
     case "write":
       return (
         <>
-          <Terminal>
+          <Terminal chroot={step.chroot}>
             {options.editor} {step.path}
           </Terminal>
           <pre className="overflow-x-scroll w-full block whitespace-pre text-sm bg-blue-50 dark:bg-gray-900 dark:text-blue-200 text-blue-700 px-2 py-1 rounded">
@@ -31,15 +31,14 @@ const AnyStep: React.FC<{ step: Step; options: Options }> = (props) => {
 interface Props {
   isNotesEnabled: boolean;
   editor: any;
+  fileSystem: any;
+  graphics: any;
+  kernel: any;
   processor: any;
 }
 
-const Instructions: React.FC<Props> = ({
-  isNotesEnabled,
-  editor,
-  processor,
-}) => {
-  const options = { ...defaultOptions, editor, processor };
+const Instructions: React.FC<Props> = ({ isNotesEnabled, ...props }) => {
+  const options = { ...defaultOptions, ...props };
   const sections = makeSections(options);
 
   return (

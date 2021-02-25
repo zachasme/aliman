@@ -32,12 +32,19 @@ export type BootMode = "uefi";
 export type Processor = "amd";
 export type Editor = "vim";
 export type FileSystem = "ext4";
-export type Kernel = "linux";
+export type Kernel = string;
+
+export enum Graphics {
+  Intel = "intel",
+  AmdGPU = "amdgpu",
+  Nvidia = "nvidia",
+}
 
 export interface Options {
   bootMode: BootMode;
   processor: Processor;
   editor: Editor;
+  graphics: Graphics;
   fileSystem: FileSystem;
   kernel: Kernel;
   username: string;
@@ -50,6 +57,7 @@ export interface Options {
 export const defaultOptions: Options = {
   bootMode: "uefi",
   editor: "vim",
+  graphics: Graphics.Intel,
   fileSystem: "ext4",
   kernel: "linux",
   processor: "amd",
@@ -61,6 +69,26 @@ export const defaultOptions: Options = {
 };
 
 export default function steps(options: Options): Section[] {
+  const packages: string[] = [
+    "base",
+    "base-devel",
+    options.kernel,
+    "linux-firmware",
+    `${options.processor}-ucode`,
+    options.editor,
+  ];
+  if (options.graphics === Graphics.Nvidia) {
+    if (options.kernel === "linux") {
+      packages.push("nvidia");
+    } else if (options.kernel === "linux-lts") {
+      packages.push("nvidia-lts");
+    } else {
+      // we will need dkms
+      packages.push("nvidia-dkms");
+      packages.push(`${options.kernel}-headers`);
+    }
+  }
+
   return [
     {
       title: "Pre-installation (live environment)",
@@ -96,7 +124,7 @@ export default function steps(options: Options): Section[] {
           type: "command",
           title: "Partition the disks",
           command: `gdisk ${options.partitionDevice}`,
-          note: `Example: ${options.partitionBoot} EFI partition 550 MiB, ${options.partitionRoot} linux partition remaining space`,
+          note: `Example: ${options.partitionBoot} EFI partition 260 MiB, ${options.partitionRoot} linux partition remaining space`,
         },
         {
           skip: true,
@@ -134,15 +162,13 @@ export default function steps(options: Options): Section[] {
         {
           skip: true,
           type: "command",
-          title: "Choose download mirrors",
-          command: `${options.editor} /etc/pacman.d/mirrorlist`,
-          note:
-            "The higher a mirror is placed in the list, the more priority it is given when downloading a package. You may want to edit the file accordingly, and move the geographically closest mirrors to the top of the list, although other criteria should be taken into account. This file will later be copied to the new system by pacstrap, so it is worth getting right.",
+          title: "Sort download mirrors",
+          command: `reflector --verbose --latest 5 --sort rate --save /etc/pacman.d/mirrorlist`,
         },
         {
           type: "command",
           title: "Install base packages",
-          command: `pacstrap /mnt ${options.editor} base base-devel linux linux-firmware ${options.processor}-ucode`,
+          command: `pacstrap /mnt ${packages.join(" ")}`,
         },
       ],
     },
@@ -154,6 +180,11 @@ export default function steps(options: Options): Section[] {
           type: "command",
           title: "Generate fstab file",
           command: "genfstab -U /mnt >> /mnt/etc/fstab",
+        },
+        {
+          type: "command",
+          title: "Copy default network config",
+          command: "cp /etc/systemd/network/* /mnt/etc/systemd/network/",
         },
         {
           type: "command",
@@ -235,6 +266,19 @@ export default function steps(options: Options): Section[] {
           path: "/etc/hosts",
           lines: ["127.0.0.1\tlocalhost", "::1\t\tlocalhost"],
         },
+        {
+          type: "command",
+          chroot: true,
+          title: "Use systemd DNS stub file",
+          command:
+            "ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf",
+        },
+        {
+          type: "command",
+          chroot: true,
+          title: "Enable systemd network services",
+          command: "systemctl enable systemd-networkd systemd-resolved",
+        },
       ],
     },
 
@@ -273,12 +317,12 @@ export default function steps(options: Options): Section[] {
           type: "write",
           chroot: true,
           title: "Configure bootloader",
-          path: "/boot/loader/entries/arch-linux.conf",
+          path: "/boot/loader/entries/arch.conf",
           lines: [
-            `title Arch (linux)`,
-            `linux /vmlinuz-linux`,
+            `title Arch (${options.kernel})`,
+            `linux /vmlinuz-${options.kernel}`,
             `initrd /${options.processor}-ucode.img`,
-            `initrd /initramfs-linux.img`,
+            `initrd /initramfs-${options.kernel}.img`,
             `options rw`,
           ],
         },
@@ -286,12 +330,12 @@ export default function steps(options: Options): Section[] {
           type: "write",
           chroot: true,
           title: "Add fallback entry",
-          path: "/boot/loader/entries/arch-linux-fallback.conf",
+          path: "/boot/loader/entries/arch-fallback.conf",
           lines: [
-            `title Arch (linux-fallback)`,
-            `linux /vmlinuz-linux`,
+            `title Arch (${options.kernel}-fallback)`,
+            `linux /vmlinuz-${options.kernel}`,
             `initrd /${options.processor}-ucode.img`,
-            `initrd /initramfs-linux-fallback.img`,
+            `initrd /initramfs-${options.kernel}-fallback.img`,
             `options rw`,
           ],
         },
@@ -303,6 +347,7 @@ export default function steps(options: Options): Section[] {
       steps: [
         {
           skip: true,
+          chroot: true,
           type: "command",
           title: "Leave chroot",
           command: "exit",
@@ -311,14 +356,20 @@ export default function steps(options: Options): Section[] {
           skip: true,
           type: "command",
           title: "Unmount and reboot",
-          command: "umount -R /mnt && reboot",
+          command: "umount --recursive /mnt && reboot",
         },
       ],
     },
-    
+
     /*{
       title: "Userspace setup",
       steps: [
+        {
+          type: "command",
+          chroot: true,
+          title: "Enable systemd-homed",
+          command: "systemctl enable systemd-homed",
+        },
         {
           skip: true,
           type: "command",

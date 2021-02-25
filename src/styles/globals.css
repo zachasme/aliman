@@ -47,3 +47,9 @@ article {
   grid-column-gap: 3rem;
   column-gap: 3rem;
 }
+
+@media print {
+  html {
+    font-size: 10px;
+  }
+}

@@ -28,15 +28,13 @@ const Select: React.FC<any> = ({ options, value, ...props }) => {
   );
 };
 
-enum Processor {
-  AMD = "amd",
-  Intel = "intel",
-}
-
 const Guide: React.FC = () => {
   const [isNotesEnabled, setIsNotesEnabled] = useState(true);
-  const [processor, setProcessor] = useState(Processor.AMD);
+  const [processor, setProcessor] = useState("amd");
   const [editor, setEditor] = useState("vim");
+  const [fileSystem, setFileSystem] = useState("btrfs");
+  const [graphics, setGraphics] = useState("nvidia");
+  const [kernel, setKernel] = useState("linux");
 
   return (
     <main className="min-h-screen bg-gray-100 dark:bg-gray-900 text-black dark:text-white">
@@ -50,29 +48,77 @@ const Guide: React.FC = () => {
           notes
         </label>
 
-        <label>Editor</label>
-        <Select
-          value={editor}
-          onChange={(e) => setEditor(e.target.value)}
-          options={{
-            ["vim"]: "vim",
-            ["nano"]: "nano",
-          }}
-        />
+        <div className="flex">
+          <label>
+            Editor
+            <Select
+              value={editor}
+              onChange={(e) => setEditor(e.target.value)}
+              options={{
+                ["vim"]: "vim",
+                ["nano"]: "nano",
+              }}
+            />
+          </label>
 
-        <label>CPU Vendor</label>
-        <Select
-          value={processor}
-          onChange={(e) => setProcessor(e.target.value)}
-          options={{
-            [Processor.AMD]: "AMD cpu",
-            [Processor.Intel]: "Intel cpu",
-          }}
-        />
+          <label>
+            Filesystem
+            <Select
+              value={fileSystem}
+              onChange={(e) => setFileSystem(e.target.value)}
+              options={{
+                ["ext4"]: "ext4 (tried and tested)",
+                ["btrfs"]: "btrfs (get snapshots)",
+              }}
+            />
+          </label>
+
+          <label>
+            CPU Vendor
+            <Select
+              value={processor}
+              onChange={(e) => setProcessor(e.target.value)}
+              options={{
+                ["amd"]: "AMD cpu",
+                ["intel"]: "Intel cpu",
+              }}
+            />
+          </label>
+
+          <label>
+            Graphics
+            <Select
+              value={graphics}
+              onChange={(e) => setGraphics(e.target.value)}
+              options={{
+                ["intel"]: "intel",
+                ["amdgpu"]: "amdgpu",
+                ["nvidia"]: "nvidia",
+              }}
+            />
+          </label>
+
+          <label>
+            Kernel
+            <Select
+              value={kernel}
+              onChange={(e) => setKernel(e.target.value)}
+              options={{
+                ["linux"]: "Stable (linux)",
+                ["linux-lts"]: "Longterm (linux-lts)",
+                ["linux-hardened"]: "Hardened (linux-hardened)",
+                ["linux-zen"]: "Zen (linux-zen)",
+              }}
+            />
+          </label>
+        </div>
       </div>
       <div className="container mx-auto px-16 print:px-0">
         <Instructions
           editor={editor}
+          fileSystem={fileSystem}
+          graphics={graphics}
+          kernel={kernel}
           processor={processor}
           isNotesEnabled={isNotesEnabled}
         />
