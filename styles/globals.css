@@ -106,3 +106,32 @@ h5:first-child {
     display: none;
   }
 }
+
+@supports (background-clip: text) {
+ @keyframes rainbow-slide {
+  0% {
+   background-position:0 50%
+  }
+  50% {
+   background-position:100% 50%
+  }
+  to {
+   background-position:0 50%
+  }
+ }
+ h1{
+  color: transparent;
+  background-clip: text;
+  background-size: 300% 100%;
+  background-image: linear-gradient(
+    90deg,
+    #e5600b 0,
+    #bfaf00 14%,
+    #37bb00 28%,
+    #25b5f5 43%,
+    #ca57fa 68%,
+    #fa3f2b 83%,
+    #e5600b);
+  animation: rainbow-slide 8s linear infinite;
+ }
+}

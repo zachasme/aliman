@@ -175,6 +175,7 @@ const Guide: React.FC = () => {
           </label>
         </div>
       </div>
+      <h1>Arch Linux Installation</h1>
       <div className="App">
         <Instructions
           editor={editor}
