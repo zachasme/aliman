@@ -1,6 +1,12 @@
-import firebase from "firebase/app";
-import "firebase/auth";
-import "firebase/firestore";
+import { initializeApp } from "firebase/app";
+import { getAuth, signInAnonymously } from "firebase/auth";
+import {
+  setDoc,
+  getFirestore,
+  doc,
+  deleteDoc,
+  onSnapshot,
+} from "firebase/firestore";
 import React from "react";
 
 const firebaseConfig = {
@@ -16,37 +22,32 @@ const firebaseConfig = {
 
 //const firebase = window.firebase;
 
-firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
-firebase.auth().signInAnonymously();
+const auth = getAuth(app);
+const db = getFirestore(app);
+signInAnonymously(auth);
 
 export function useUserConfiguration(user: any) {
   const [state, setState] = React.useState(null);
 
   React.useEffect(() => {
     if (!user) return;
-    return firebase
-      .firestore()
-      .collection("users")
-      .doc(user.uid)
-      .onSnapshot((snapshot: any) => {
-        setState(snapshot.data());
-      });
+
+    return onSnapshot(doc(db, "users", user.uid), (snapshot: any) => {
+      setState(snapshot.data());
+    });
   }, [user]);
 
   async function reset() {
-    await firebase.firestore().collection("users").doc(user.uid).delete();
+    deleteDoc(doc(db, "users", user.uid));
   }
 
   return [state, reset];
 }
 
 export function setConfiguration(user: any, configuration: any) {
-  firebase
-    .firestore()
-    .collection("configurations")
-    .doc(user.uid)
-    .set(configuration);
+  setDoc(doc(db, "users", user.uid), configuration);
 }
 
-export default firebase;
+export default app;
