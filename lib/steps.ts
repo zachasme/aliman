@@ -330,6 +330,7 @@ export default function steps(options: Options): Section[] {
             `linux /vmlinuz-${options.kernel}`,
             `initrd /${options.processor}-ucode.img`,
             `initrd /initramfs-${options.kernel}.img`,
+            `options root=${options.partitionRoot}`,
           ],
         },
         {
@@ -342,6 +343,7 @@ export default function steps(options: Options): Section[] {
             `linux /vmlinuz-${options.kernel}`,
             `initrd /${options.processor}-ucode.img`,
             `initrd /initramfs-${options.kernel}-fallback.img`,
+            `options root=${options.partitionRoot}`,
           ],
         },
       ],
